@@ -1,7 +1,7 @@
 /***
   Copyright (c) 2013-2014 CommonsWare, LLC
   Portions Copyright (C) 2007 The Android Open Source Project
-  
+
   Licensed under the Apache License, Version 2.0 (the "License"); you may
   not use this file except in compliance with the License. You may obtain
   a copy of the License at
@@ -23,6 +23,7 @@ import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.CameraInfo;
+import android.media.AudioManager;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.util.AttributeSet;
@@ -146,7 +147,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
     final int height=
         resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
     setMeasuredDimension(width, height);
-    
+
     if (width > 0 && height > 0) {
       if (camera != null) {
         Camera.Size newSize=null;
@@ -280,7 +281,28 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
                     .needByteArray(needByteArray));
   }
 
-  public void takePicture(final PictureTransaction xact) {
+    public void takePicture(boolean needBitmap, boolean needByteArray, AbstractCustomShutterSoundPlayer player) {
+        PictureTransaction xact=new PictureTransaction(getHost());
+        takePicture(xact.needBitmap(needBitmap)
+                .needByteArray(needByteArray), player, player);
+    }
+
+    public void takePicture(AbstractCustomShutterSoundPlayer player, PictureTransaction xact) {
+        takePicture(xact, player, player);
+    }
+
+    public void takePicture(PictureTransaction xact) {
+        takePicture(xact, xact, null);
+    }
+
+    public void takePicture(boolean needBitmap, boolean needByteArray, Camera.ShutterCallback shutter, Camera.PictureCallback pictureCallback) {
+
+        PictureTransaction xact = new PictureTransaction(getHost());
+        takePicture(xact.needBitmap(needBitmap)
+                .needByteArray(needByteArray), shutter, pictureCallback);
+    }
+
+    public void takePicture(final PictureTransaction xact,Camera.ShutterCallback shutter, Camera.PictureCallback pictureCallback) {
     if (inPreview) {
       if (isAutoFocusing) {
         throw new IllegalStateException(
@@ -309,20 +331,8 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
                                                                pictureParams));
         xact.cameraView=this;
 
-        postDelayed(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              camera.takePicture(xact, null,
-                                 new PictureTransactionCallback(xact));
-            }
-            catch (Exception e) {
-              android.util.Log.e(getClass().getSimpleName(),
-                                 "Exception taking a picture", e);
-              // TODO get this out to library clients
-            }
-          }
-        }, xact.host.getDeviceProfile().getPictureDelay());
+        postDelayed(new TakePictureRunnable(shutter, pictureCallback, xact),
+                xact.host.getDeviceProfile().getPictureDelay());
 
         inPreview=false;
       }
@@ -332,6 +342,35 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
                                       "Preview mode must have started before you can take a picture");
     }
   }
+
+    public Camera getCamera() {
+        return camera;
+    }
+
+    class TakePictureRunnable implements Runnable{
+        TakePictureRunnable(Camera.ShutterCallback shutter, Camera.PictureCallback raw, PictureTransaction transaction) {
+            this.shutter = shutter;
+            this.raw = raw;
+            this.transaction = transaction;
+        }
+
+        private Camera.ShutterCallback shutter;
+        private Camera.PictureCallback raw;
+        private PictureTransaction transaction;
+
+        @Override
+        public void run() {
+            try {
+                camera.takePicture(shutter, raw,
+                        new PictureTransactionCallback(transaction));
+            }
+            catch (Exception e) {
+                android.util.Log.e(getClass().getSimpleName(),
+                        "Exception taking a picture", e);
+                // TODO get this out to library clients
+            }
+        }
+   }
 
   public boolean isRecording() {
     return(recorder != null);
