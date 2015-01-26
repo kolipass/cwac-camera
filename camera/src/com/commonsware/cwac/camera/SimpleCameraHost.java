@@ -45,8 +45,9 @@ public class SimpleCameraHost implements CameraHost {
   private boolean scanSavedImage=true;
   private boolean useFullBleedPreview=true;
   private boolean useSingleShotMode=false;
+  public Camera.Size previewSize;
 
-  public SimpleCameraHost(Context _ctxt) {
+    public SimpleCameraHost(Context _ctxt) {
     this.ctxt=_ctxt.getApplicationContext();
   }
 
@@ -155,9 +156,10 @@ public class SimpleCameraHost implements CameraHost {
   public Camera.Size getPreviewSize(int displayOrientation, int width,
                                     int height,
                                     Camera.Parameters parameters) {
-    return(CameraUtils.getBestAspectPreviewSize(displayOrientation,
-                                                width, height,
-                                                parameters));
+    previewSize = (CameraUtils.getBestAspectPreviewSize(displayOrientation,
+              width, height,
+              parameters));
+    return previewSize;
   }
 
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -172,7 +174,8 @@ public class SimpleCameraHost implements CameraHost {
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-      return(parameters.getPreferredPreviewSizeForVideo());
+      previewSize = parameters.getPreferredPreviewSizeForVideo();
+      return previewSize;
     }
 
     return(null);

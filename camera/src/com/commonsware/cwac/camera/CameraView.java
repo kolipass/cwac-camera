@@ -615,6 +615,9 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
       lastPictureOrientation=outputOrientation;
     }
   }
+  public Camera getCamera() {
+      return camera;
+  }
 
   // based on:
   // http://developer.android.com/reference/android/hardware/Camera.Parameters.html#setRotation(int)
