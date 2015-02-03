@@ -301,12 +301,12 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
           pictureParams.setFlashMode(xact.flashMode);
         }
 
-        if (!onOrientationChange.isEnabled()) {
+//        if (!onOrientationChange.isEnabled()) {
           setCameraPictureOrientation(pictureParams);
-        }
+//        }
 
         camera.setParameters(xact.host.adjustPictureParameters(xact,
-                                                               pictureParams));
+                pictureParams));
         xact.cameraView=this;
 
         postDelayed(new Runnable() {
@@ -456,6 +456,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
     }
   }
 
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
   public void stopFaceDetection() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH
         && camera != null && isDetectingFaces) {
@@ -653,28 +654,28 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
 
     @Override
     public void onOrientationChanged(int orientation) {
-      if (camera != null && orientation != ORIENTATION_UNKNOWN) {
-        int newOutputOrientation=getCameraPictureRotation(orientation);
-
-        if (newOutputOrientation != outputOrientation) {
-          outputOrientation=newOutputOrientation;
-
-          Camera.Parameters params=camera.getParameters();
-
-          params.setRotation(outputOrientation);
-
-          try {
-            camera.setParameters(params);
-            lastPictureOrientation=outputOrientation;
-          }
-          catch (Exception e) {
-            Log.e(getClass().getSimpleName(),
-                  "Exception updating camera parameters in orientation change",
-                  e);
-            // TODO: get this info out to hosting app
-          }
-        }
-      }
+//      if (camera != null && orientation != ORIENTATION_UNKNOWN) {
+//        int newOutputOrientation=getCameraPictureRotation(orientation);
+//
+//        if (newOutputOrientation != outputOrientation) {
+//          outputOrientation=newOutputOrientation;
+//
+//          Camera.Parameters params=camera.getParameters();
+//
+//          params.setRotation(outputOrientation);
+//
+//          try {
+//            camera.setParameters(params);
+//            lastPictureOrientation=outputOrientation;
+//          }
+//          catch (Exception e) {
+//            Log.e(getClass().getSimpleName(),
+//                  "Exception updating camera parameters in orientation change",
+//                  e);
+//            // TODO: get this info out to hosting app
+//          }
+//        }
+//      }
     }
 
     @Override
