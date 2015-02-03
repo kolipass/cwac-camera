@@ -343,10 +343,10 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
                                               "Video recording supported only on API Level 11+");
     }
 
-    if (displayOrientation != 0 && displayOrientation != 180) {
-      throw new UnsupportedOperationException(
-                                              "Video recording supported only in landscape");
-    }
+//    if (displayOrientation != 0 && displayOrientation != 180) {
+//      throw new UnsupportedOperationException(
+//                                              "Video recording supported only in landscape");
+//    }
 
     Camera.Parameters pictureParams=camera.getParameters();
 
