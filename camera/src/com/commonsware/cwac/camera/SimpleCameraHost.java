@@ -40,7 +40,7 @@ public class SimpleCameraHost implements CameraHost {
   private File photoDirectory=null;
   private File videoDirectory=null;
   private RecordingHint recordingHint=null;
-  private boolean mirrorFFC=false;
+  protected boolean mirrorFFC=false;
   private boolean useFrontFacingCamera=false;
   private boolean scanSavedImage=true;
   private boolean useFullBleedPreview=true;
@@ -149,16 +149,16 @@ public class SimpleCameraHost implements CameraHost {
   @Override
   public Camera.Size getPictureSize(PictureTransaction xact,
                                     Camera.Parameters parameters) {
-    return(CameraUtils.getLargestPictureSize(this, parameters));
+//    return(CameraUtils.getLargestPictureSize(this, parameters));
+      return previewSize;
   }
 
   @Override
   public Camera.Size getPreviewSize(int displayOrientation, int width,
                                     int height,
                                     Camera.Parameters parameters) {
-    previewSize = (CameraUtils.getBestAspectPreviewSize(displayOrientation,
-              width, height,
-              parameters));
+    previewSize = (CameraUtils.getOptimalPreviewSize(displayOrientation,
+              width, height, parameters));
     return previewSize;
   }
 
