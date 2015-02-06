@@ -720,4 +720,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
       }
     }
   }
+  public int getOutputOrientation() {
+      return outputOrientation;
+  }
 }
