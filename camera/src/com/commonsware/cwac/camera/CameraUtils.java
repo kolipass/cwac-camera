@@ -14,8 +14,11 @@
 
 package com.commonsware.cwac.camera;
 
+import android.annotation.TargetApi;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
+import android.os.Build;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -110,6 +113,31 @@ public class CameraUtils {
 
     return(optimalSize);
   }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public static Camera.Size getBestResolutionVideoSize(int width,
+                                                       int height,
+                                                       Camera.Parameters parameters) {
+        double targetCap = width * height;
+        Camera.Size optimalSize=null;
+        double minDiff=Double.MAX_VALUE;
+
+        List<Size> sizes=parameters.getSupportedVideoSizes();
+
+        Collections.sort(sizes,
+                Collections.reverseOrder(new SizeComparator()));
+
+        for (Size size : sizes) {
+            double cap = size.width * size.height;
+            double diff = Math.abs(cap - targetCap);
+            if (diff < minDiff) {
+                optimalSize=size;
+                minDiff=diff;
+            }
+        }
+
+        return(optimalSize);
+    }
 
   public static Camera.Size getLargestPictureSize(CameraHost host,
                                                   Camera.Parameters parameters) {

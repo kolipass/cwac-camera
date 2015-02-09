@@ -116,7 +116,7 @@ public interface CameraHost extends Camera.AutoFocusCallback {
    * to configure the output of the MediaRecorder, just
    * prior to beginning to record a video. Please ONLY
    * configure output here.
-   * 
+   *
    * @param cameraId
    *          the camera that will be used for recording
    * @param recorder
@@ -129,13 +129,12 @@ public interface CameraHost extends Camera.AutoFocusCallback {
    * to configure the profile of the MediaRecorder, just
    * prior to beginning to record a video. Please ONLY
    * configure profile here.
-   * 
-   * @param cameraId
+   *  @param cameraId
    *          the camera that will be used for recording
    * @param recorder
-   *          the MediaRecorder to be configured
+   * @param videoSize
    */
-  void configureRecorderProfile(int cameraId, MediaRecorder recorder);
+  void configureRecorderProfile(int cameraId, MediaRecorder recorder, Camera.Size videoSize);
 
   /**
    * @return the ID of the camera that you want to use for

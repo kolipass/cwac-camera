@@ -77,23 +77,27 @@ public class SimpleCameraHost implements CameraHost {
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   @Override
   public void configureRecorderProfile(int cameraId,
-                                       MediaRecorder recorder) {
+                                       MediaRecorder recorder, Camera.Size videoSize) {
+      CamcorderProfile profile = null;
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
         || CamcorderProfile.hasProfile(cameraId,
                                        CamcorderProfile.QUALITY_HIGH)) {
-      recorder.setProfile(CamcorderProfile.get(cameraId,
-                                               CamcorderProfile.QUALITY_HIGH));
+        profile = CamcorderProfile.get(cameraId,
+                                               CamcorderProfile.QUALITY_HIGH);
     }
     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
         && CamcorderProfile.hasProfile(cameraId,
                                        CamcorderProfile.QUALITY_LOW)) {
-      recorder.setProfile(CamcorderProfile.get(cameraId,
-                                               CamcorderProfile.QUALITY_LOW));
+      profile = CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
     }
-    else {
+
+    if (profile == null) {
       throw new IllegalStateException(
                                       "cannot find valid CamcorderProfile");
     }
+      profile.videoFrameWidth = videoSize.width;
+      profile.videoFrameHeight = videoSize.height;
+      recorder.setProfile(profile);
   }
 
   @Override

@@ -27,7 +27,6 @@ import android.media.MediaRecorder;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
@@ -353,8 +352,8 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
 //    }
 
     Camera.Parameters pictureParams=camera.getParameters();
-
     setCameraPictureOrientation(pictureParams);
+    Camera.Size videoSize = CameraUtils.getBestResolutionVideoSize(previewSize.width, previewSize.height, pictureParams);
     camera.setParameters(pictureParams);
 
     stopPreview();
@@ -365,7 +364,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
       recorder.setCamera(camera);
       getHost().configureRecorderAudio(cameraId, recorder);
       recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-      getHost().configureRecorderProfile(cameraId, recorder);
+      getHost().configureRecorderProfile(cameraId, recorder, videoSize);
       getHost().configureRecorderOutput(cameraId, recorder);
       recorder.setOrientationHint(outputOrientation);
       previewStrategy.attach(recorder);
