@@ -214,7 +214,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
 
   @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
-    if (changed && getChildCount() > 0) {
+    if (/*changed &&*/ getChildCount() > 0) {
       final View child=getChildAt(0);
       final int width=r - l;
       final int height=b - t;
@@ -237,10 +237,10 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
 
       boolean useFirstStrategy=
           (width * previewHeight > height * previewWidth);
-      boolean useFullBleed=getHost().useFullBleedPreview();
-
-      if ((useFirstStrategy && !useFullBleed)
-          || (!useFirstStrategy && useFullBleed)) {
+//      boolean useFullBleed=getHost().useFullBleedPreview();
+//      if ((useFirstStrategy && !useFullBleed)
+//          || (!useFirstStrategy && useFullBleed)) {
+      if (!useFirstStrategy) {
         final int scaledChildWidth=
             previewWidth * height / previewHeight;
         child.layout((width - scaledChildWidth) / 2, 0,
