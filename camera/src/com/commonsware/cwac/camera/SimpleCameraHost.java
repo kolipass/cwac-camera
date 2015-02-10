@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class SimpleCameraHost implements CameraHost {
@@ -161,10 +162,42 @@ public class SimpleCameraHost implements CameraHost {
   public Camera.Size getPreviewSize(int displayOrientation, int width,
                                     int height,
                                     Camera.Parameters parameters) {
-    previewSize = (CameraUtils.getOptimalPreviewSize(displayOrientation,
-              width, height, parameters));
+    previewSize = (getOptimalPreviewSize(parameters.getSupportedPreviewSizes(), width, height));
     return previewSize;
   }
+
+    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+        final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio = (double) w / h;
+        if (sizes == null) return null;
+
+        Camera.Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+
+        int targetHeight = h;
+
+        // Try to find an size match aspect ratio and size
+        for (Camera.Size size : sizes) {
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.height - targetHeight);
+            }
+        }
+
+        // Cannot find the one match the aspect ratio, ignore the requirement
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : sizes) {
+                if (Math.abs(size.height - targetHeight) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.height - targetHeight);
+                }
+            }
+        }
+        return optimalSize;
+    }
 
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   @Override
@@ -173,14 +206,14 @@ public class SimpleCameraHost implements CameraHost {
                                                      int height,
                                                      Camera.Parameters parameters,
                                                      Camera.Size deviceHint) {
-    if (deviceHint != null) {
-      return(deviceHint);
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-      previewSize = parameters.getPreferredPreviewSizeForVideo();
-      return previewSize;
-    }
+//    if (deviceHint != null) {
+//      return(deviceHint);
+//    }
+//
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+//      previewSize = parameters.getPreferredPreviewSizeForVideo();
+//      return previewSize;
+//    }
 
     return(null);
   }
