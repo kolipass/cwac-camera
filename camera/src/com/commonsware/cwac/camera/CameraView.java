@@ -85,13 +85,13 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
 
   public void setHost(CameraHost host) {
     this.host=host;
-
-    if (host.getDeviceProfile().useTextureView()) {
-      previewStrategy=new TexturePreviewStrategy(this);
-    }
-    else {
+      host.getDeviceProfile();
+//    if (host.getDeviceProfile().useTextureView()) {
+//      previewStrategy=new TexturePreviewStrategy(this);
+//    }
+//    else {
       previewStrategy=new SurfacePreviewStrategy(this);
-    }
+//    }
   }
 
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
