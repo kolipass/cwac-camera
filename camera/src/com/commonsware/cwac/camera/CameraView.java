@@ -356,7 +356,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
     Camera.Size videoSize = CameraUtils.getBestResolutionVideoSize(previewSize.width, previewSize.height, pictureParams);
     camera.setParameters(pictureParams);
 
-    stopPreview();
+//    stopPreview();
     camera.unlock();
 
     try {
@@ -367,7 +367,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
       getHost().configureRecorderProfile(cameraId, recorder, videoSize);
       getHost().configureRecorderOutput(cameraId, recorder);
       recorder.setOrientationHint(outputOrientation);
-      previewStrategy.attach(recorder);
+//      previewStrategy.attach(recorder);
       recorder.prepare();
       recorder.start();
     }
