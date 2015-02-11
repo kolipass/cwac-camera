@@ -82,14 +82,14 @@ public class SimpleCameraHost implements CameraHost {
       CamcorderProfile profile = null;
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
         || CamcorderProfile.hasProfile(cameraId,
-                                       CamcorderProfile.QUALITY_HIGH)) {
+                                       CamcorderProfile.QUALITY_LOW)) {
         profile = CamcorderProfile.get(cameraId,
-                                               CamcorderProfile.QUALITY_HIGH);
+                                               CamcorderProfile.QUALITY_LOW);
     }
     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
         && CamcorderProfile.hasProfile(cameraId,
-                                       CamcorderProfile.QUALITY_LOW)) {
-      profile = CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
+                                       CamcorderProfile.QUALITY_HIGH)) {
+      profile = CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
     }
 
     if (profile == null) {
