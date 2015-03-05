@@ -312,9 +312,9 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
                 pictureParams));
         xact.cameraView=this;
 
-        postDelayed(new Runnable() {
-          @Override
-          public void run() {
+//        postDelayed(new Runnable() {
+//          @Override
+//          public void run() {
             try {
               camera.takePicture(xact, null,
                                  new PictureTransactionCallback(xact));
@@ -324,8 +324,8 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
                                  "Exception taking a picture", e);
               // TODO get this out to library clients
             }
-          }
-        }, xact.host.getDeviceProfile().getPictureDelay());
+//          }
+//        }, xact.host.getDeviceProfile().getPictureDelay());
 
         inPreview=false;
       }
@@ -495,6 +495,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
   void previewDestroyed() {
     if (camera != null) {
       previewStopped();
+      camera.setPreviewCallback(null);
       camera.release();
       camera=null;
     }
