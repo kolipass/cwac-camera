@@ -50,8 +50,9 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
   private boolean isDetectingFaces=false;
   private boolean isAutoFocusing=false;
   private int lastPictureOrientation=-1;
+    private Camera.PreviewCallback callback;
 
-  public CameraView(Context context) {
+    public CameraView(Context context) {
     super(context);
 
     onOrientationChange=new OnOrientationChange(context.getApplicationContext());
@@ -97,10 +98,9 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
   public void onResume() {
     View view = previewStrategy.getWidget();
-    if (indexOfChild(view) >= 0) {
-        return;
+    if (indexOfChild(view) == -1) {
+        addView(view);
     }
-    addView(view);
 
     if (camera == null) {
       cameraId=getHost().getCameraId();
@@ -495,7 +495,6 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
   void previewDestroyed() {
     if (camera != null) {
       previewStopped();
-      camera.setPreviewCallback(null);
       camera.release();
       camera=null;
     }
@@ -518,7 +517,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
 
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
   public void initPreview(int w, int h, boolean firstRun) {
-    if (camera != null) {
+    if (camera != null) { stopPreview();
       Camera.Parameters parameters=camera.getParameters();
 
       parameters.setPreviewSize(previewSize.width, previewSize.height);
@@ -535,13 +534,23 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
   }
 
   private void startPreview() {
+    if (inPreview) {
+        return;
+    }
+    if (callback != null) {
+        camera.setPreviewCallback(callback);
+    }
     camera.startPreview();
     inPreview=true;
     getHost().autoFocusAvailable();
   }
 
   private void stopPreview() {
+    if (!inPreview) {
+        return;
+    }
     inPreview=false;
+    camera.setPreviewCallback(null);
     getHost().autoFocusUnavailable();
     camera.stopPreview();
   }
@@ -648,7 +657,11 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
     return((Activity)getContext());
   }
 
-  private class OnOrientationChange extends OrientationEventListener {
+    public void setPreviewCallback(Camera.PreviewCallback callback) {
+        this.callback = callback;
+    }
+
+    private class OnOrientationChange extends OrientationEventListener {
     private boolean isEnabled=false;
 
     public OnOrientationChange(Context context) {
