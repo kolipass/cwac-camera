@@ -20,6 +20,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.CameraInfo;
@@ -27,11 +30,16 @@ import android.media.MediaRecorder;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.commonsware.cwac.camera.CameraHost.FailureReason;
 
 public class CameraView extends ViewGroup implements AutoFocusCallback {
@@ -114,7 +122,6 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
           }
 
           setCameraDisplayOrientation();
-
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH
               && getHost() instanceof Camera.FaceDetectionListener) {
             camera.setFaceDetectionListener((Camera.FaceDetectionListener)getHost());
@@ -629,9 +636,6 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
       lastPictureOrientation=outputOrientation;
     }
   }
-  public Camera getCamera() {
-      return camera;
-  }
 
   // based on:
   // http://developer.android.com/reference/android/hardware/Camera.Parameters.html#setRotation(int)
@@ -659,6 +663,65 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
 
     public void setPreviewCallback(Camera.PreviewCallback callback) {
         this.callback = callback;
+    }
+
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    public void setCameraFocus(MotionEvent event) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && camera != null) {
+            Camera.Parameters param = camera.getParameters();
+
+            List<String> modes = param.getSupportedFocusModes();
+            if (!modes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                return;
+            }
+            camera.cancelAutoFocus();
+            Rect focusRect = calculateTapArea(event.getX(), event.getY(), 1f);
+
+            param.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            ArrayList<Camera.Area> l = new ArrayList<Camera.Area>();
+            l.add(new Camera.Area(focusRect, 1000));
+            param.setFocusAreas(l);
+            if (param.getMaxNumMeteringAreas() > 0) {
+                Rect meteringRect = calculateTapArea(event.getX(), event.getY(), 1.5f);
+                l = new ArrayList<Camera.Area>();
+                l.add(new Camera.Area(meteringRect, 1000));
+                param.setMeteringAreas(l);
+            }
+            camera.setParameters(param);
+            camera.autoFocus(this);
+        }
+    }
+
+
+    /**
+     * Convert touch position x:y to {@link Camera.Area} position -1000:-1000 to 1000:1000.
+     */
+    private Rect calculateTapArea(float x, float y, float coefficient) {
+        int focusAreaSize = getContext().getResources().getDimensionPixelSize(R.dimen.camera_focus_size);
+        int areaSize = Float.valueOf(focusAreaSize * coefficient).intValue();
+
+        int sw = previewStrategy.getWidget().getWidth();
+        int sh = previewStrategy.getWidget().getHeight();
+        int left = clamp((int) x - areaSize / 2, 0, sw - areaSize);
+        int top = clamp((int) y - areaSize / 2, 0, sh - areaSize);
+
+        RectF rectF = new RectF(left, top, left + areaSize, top + areaSize);
+        Matrix matrix = new Matrix();
+        matrix.setScale(1, 1);
+        matrix.postScale(2000f / sw, 2000f / sh);
+        matrix.postTranslate(-1000f, -1000f);
+        matrix.mapRect(rectF);
+        return new Rect(Math.round(rectF.left), Math.round(rectF.top), Math.round(rectF.right), Math.round(rectF.bottom));
+    }
+
+    private int clamp(int x, int min, int max) {
+        if (x > max) {
+            return max;
+        }
+        if (x < min) {
+            return min;
+        }
+        return x;
     }
 
     private class OnOrientationChange extends OrientationEventListener {
@@ -732,8 +795,5 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
         startPreview();
       }
     }
-  }
-  public int getOutputOrientation() {
-      return outputOrientation;
   }
 }
