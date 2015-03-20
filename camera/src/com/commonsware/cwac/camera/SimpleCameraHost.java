@@ -46,7 +46,7 @@ public class SimpleCameraHost implements CameraHost {
   private boolean scanSavedImage=true;
   private boolean useFullBleedPreview=true;
   private boolean useSingleShotMode=false;
-  public Camera.Size previewSize;
+  protected Camera.Size previewSize;
 
     public SimpleCameraHost(Context _ctxt) {
     this.ctxt=_ctxt.getApplicationContext();
@@ -154,8 +154,12 @@ public class SimpleCameraHost implements CameraHost {
   @Override
   public Camera.Size getPictureSize(PictureTransaction xact,
                                     Camera.Parameters parameters) {
-//    return(CameraUtils.getLargestPictureSize(this, parameters));
-      return previewSize;
+    for (Camera.Size size : parameters.getSupportedPictureSizes()) {
+      if (size.width == previewSize.width && size.height == previewSize.height) {
+        return previewSize;
+      }
+    }
+    return(CameraUtils.getLargestPictureSize(this, parameters));
   }
 
   @Override
