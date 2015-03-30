@@ -210,7 +210,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
             }
 
             previewSize=newSize;
-            initPreview(width, height, false);
+            initPreview(width, height);
           }
         }
       }
@@ -293,13 +293,12 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
   public void takePicture(final PictureTransaction xact) {
     if (inPreview) {
       if (isAutoFocusing) {
-        throw new IllegalStateException(
-                                        "Camera cannot take a picture while auto-focusing");
-      }
-      else {
+        throw new IllegalStateException("Camera cannot take a picture while auto-focusing");
+      } else {
         previewParams=camera.getParameters();
 
         Camera.Parameters pictureParams = camera.getParameters();
+
         Camera.Size pictureSize = xact.host.getPictureSize(xact, pictureParams);
 
         if (pictureSize == null) {
@@ -520,23 +519,22 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
     }
   }
 
-  public void initPreview(int w, int h) {
-    initPreview(w, h, true);
-  }
-
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-  public void initPreview(int w, int h, boolean firstRun) {
-    if (camera != null) { stopPreview();
-      Camera.Parameters parameters=camera.getParameters();
-
+  public void initPreview(int w, int h) {
+    if (camera != null) {
+      Camera.Parameters parameters;
+      try {
+        parameters = camera.getParameters();
+      } catch (RuntimeException e) {
+        return;
+      }
+      stopPreview();
       parameters.setPreviewSize(previewSize.width, previewSize.height);
-
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
         parameters.setRecordingHint(getHost().getRecordingHint() != CameraHost.RecordingHint.STILL_ONLY);
       }
 
       requestLayout();
-
       camera.setParameters(getHost().adjustPreviewParameters(parameters));
       startPreview();
     }
