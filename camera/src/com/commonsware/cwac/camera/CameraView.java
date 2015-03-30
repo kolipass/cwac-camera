@@ -543,7 +543,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
   }
 
   private void startPreview() {
-    if (inPreview) {
+    if (inPreview || camera == null) {
         return;
     }
     if (callback != null) {
