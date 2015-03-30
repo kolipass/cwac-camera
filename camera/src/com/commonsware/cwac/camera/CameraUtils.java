@@ -141,42 +141,22 @@ public class CameraUtils {
 
   public static Camera.Size getLargestPictureSize(CameraHost host,
                                                   Camera.Parameters parameters) {
-    return(getLargestPictureSize(host, parameters, true));
-  }
-
-  public static Camera.Size getLargestPictureSize(CameraHost host,
-                                                  Camera.Parameters parameters,
-                                                  boolean enforceProfile) {
-    Camera.Size result=null;
-
-    for (Camera.Size size : parameters.getSupportedPictureSizes()) {
-
-      // android.util.Log.d("CWAC-Camera",
-      // String.format("%d x %d", size.width, size.height));
-
-      if (!enforceProfile
-          || (size.height <= host.getDeviceProfile()
-                                 .getMaxPictureHeight() && size.height >= host.getDeviceProfile()
-                                                                              .getMinPictureHeight())) {
-        if (result == null) {
-          result=size;
-        }
-        else {
-          int resultArea=result.width * result.height;
-          int newArea=size.width * size.height;
-
-          if (newArea > resultArea) {
-            result=size;
-          }
-        }
+      List<Size> sizes = parameters.getSupportedPictureSizes();
+      if (sizes == null || sizes.isEmpty()) {
+          return null;
       }
-    }
-
-    if (result == null && enforceProfile) {
-      result=getLargestPictureSize(host, parameters, false);
-    }
-
-    return(result);
+      Camera.Size result = sizes.get(sizes.size() - 1);
+      for (Camera.Size size : sizes) {
+          if ((size.height <= host.getDeviceProfile().getMaxPictureHeight() &&
+              size.height >= host.getDeviceProfile().getMinPictureHeight())) {
+              int resultArea = result.width * result.height;
+              int newArea = size.width * size.height;
+              if (newArea > resultArea) {
+                  result=size;
+              }
+          }
+      }
+      return(result);
   }
 
   public static Camera.Size getSmallestPictureSize(Camera.Parameters parameters) {

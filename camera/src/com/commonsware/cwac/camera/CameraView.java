@@ -299,12 +299,14 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
       else {
         previewParams=camera.getParameters();
 
-        Camera.Parameters pictureParams=camera.getParameters();
-        Camera.Size pictureSize=
-            xact.host.getPictureSize(xact, pictureParams);
+        Camera.Parameters pictureParams = camera.getParameters();
+        Camera.Size pictureSize = xact.host.getPictureSize(xact, pictureParams);
 
+        if (pictureSize == null) {
+          throw new IllegalArgumentException("can not get any valid picture size from camera " + cameraId);
+        }
         pictureParams.setPictureSize(pictureSize.width,
-                                     pictureSize.height);
+                  pictureSize.height);
         pictureParams.setPictureFormat(ImageFormat.JPEG);
 
         if (xact.flashMode != null) {
