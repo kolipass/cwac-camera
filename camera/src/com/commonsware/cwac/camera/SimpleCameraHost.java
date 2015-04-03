@@ -192,6 +192,7 @@ public class SimpleCameraHost implements CameraHost {
 
         // Cannot find the one match the aspect ratio, ignore the requirement
         if (optimalSize == null) {
+            optimalSize = sizes.get(sizes.size() - 1);
             minDiff = Double.MAX_VALUE;
             for (Camera.Size size : sizes) {
                 if (Math.abs(size.height - targetHeight) < minDiff) {
