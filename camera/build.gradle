@@ -1,7 +1,5 @@
 apply plugin: 'com.android.library'
 
-archivesBaseName 'camera'
-
 android {
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
