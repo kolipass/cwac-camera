@@ -38,7 +38,7 @@ import com.commonsware.cwac.camera.CameraHost.FailureReason;
 
 public class CameraView extends ViewGroup implements AutoFocusCallback {
   static final String TAG="CWAC-Camera";
-  private PreviewStrategy previewStrategy;
+  protected PreviewStrategy previewStrategy;
   private Camera.Size previewSize;
   private Camera camera=null;
   private boolean inPreview=false;
@@ -94,6 +94,11 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
     else {
       previewStrategy=new SurfacePreviewStrategy(this);
     }
+  }
+
+  public CameraView setPreviewStrategy(PreviewStrategy previewStrategy) {
+    this.previewStrategy = previewStrategy;
+    return this;
   }
 
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
@@ -517,7 +522,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
     return(getHost().getDeviceProfile().doesZoomActuallyWork(info.facing == CameraInfo.CAMERA_FACING_FRONT));
   }
 
-  void previewCreated() {
+  protected void previewCreated() {
     if (camera != null) {
       try {
         previewStrategy.attach(camera);
@@ -528,7 +533,7 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
     }
   }
 
-  void previewDestroyed() {
+  protected void previewDestroyed() {
     if (camera != null) {
       previewStopped();
       camera.release();
@@ -536,12 +541,12 @@ public class CameraView extends ViewGroup implements AutoFocusCallback {
     }
   }
 
-  void previewReset(int width, int height) {
+  protected void previewReset(int width, int height) {
     previewStopped();
     initPreview(width, height);
   }
 
-  private void previewStopped() {
+  protected void previewStopped() {
     if (inPreview) {
       stopPreview();
     }

@@ -14,6 +14,7 @@
 
 package com.commonsware.cwac.camera;
 
+import android.content.Context;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.view.SurfaceHolder;
@@ -21,19 +22,23 @@ import android.view.SurfaceView;
 import android.view.View;
 import java.io.IOException;
 
-class SurfacePreviewStrategy implements PreviewStrategy,
+public class SurfacePreviewStrategy implements PreviewStrategy,
     SurfaceHolder.Callback {
   private final CameraView cameraView;
   private SurfaceView preview=null;
   private SurfaceHolder previewHolder=null;
 
   @SuppressWarnings("deprecation")
-  SurfacePreviewStrategy(CameraView cameraView) {
+  public SurfacePreviewStrategy(CameraView cameraView) {
     this.cameraView=cameraView;
-    preview=new SurfaceView(cameraView.getContext());
+    preview = makeSurfaceView(cameraView.getContext());
     previewHolder=preview.getHolder();
     previewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     previewHolder.addCallback(this);
+  }
+
+  protected SurfaceView makeSurfaceView(Context context) {
+    return new SurfaceView(context);
   }
 
   @Override
