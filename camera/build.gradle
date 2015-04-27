@@ -23,19 +23,5 @@ android {
     }
 }
 
-apply plugin: 'maven'
+apply plugin: 'android-maven'
 
-uploadArchives {
-    repositories.mavenDeployer {
-        repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
-    }
-}
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from 'src/'
-}
-
-artifacts {
-    archives sourcesJar
-}
-task install(dependsOn: uploadArchives)
