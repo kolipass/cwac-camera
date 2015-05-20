@@ -14,8 +14,11 @@
 
 package com.commonsware.cwac.camera;
 
+import android.annotation.TargetApi;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
+import android.os.Build;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -111,44 +114,49 @@ public class CameraUtils {
     return(optimalSize);
   }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public static Camera.Size getBestResolutionVideoSize(int width,
+                                                       int height,
+                                                       Camera.Parameters parameters) {
+        double targetCap = width * height;
+        Camera.Size optimalSize=null;
+        double minDiff=Double.MAX_VALUE;
+
+        List<Size> sizes=parameters.getSupportedVideoSizes();
+
+        Collections.sort(sizes,
+                Collections.reverseOrder(new SizeComparator()));
+
+        for (Size size : sizes) {
+            double cap = size.width * size.height;
+            double diff = Math.abs(cap - targetCap);
+            if (diff < minDiff) {
+                optimalSize=size;
+                minDiff=diff;
+            }
+        }
+
+        return(optimalSize);
+    }
+
   public static Camera.Size getLargestPictureSize(CameraHost host,
                                                   Camera.Parameters parameters) {
-    return(getLargestPictureSize(host, parameters, true));
-  }
-
-  public static Camera.Size getLargestPictureSize(CameraHost host,
-                                                  Camera.Parameters parameters,
-                                                  boolean enforceProfile) {
-    Camera.Size result=null;
-
-    for (Camera.Size size : parameters.getSupportedPictureSizes()) {
-
-      // android.util.Log.d("CWAC-Camera",
-      // String.format("%d x %d", size.width, size.height));
-
-      if (!enforceProfile
-          || (size.height <= host.getDeviceProfile()
-                                 .getMaxPictureHeight() && size.height >= host.getDeviceProfile()
-                                                                              .getMinPictureHeight())) {
-        if (result == null) {
-          result=size;
-        }
-        else {
-          int resultArea=result.width * result.height;
-          int newArea=size.width * size.height;
-
-          if (newArea > resultArea) {
-            result=size;
-          }
-        }
+      List<Size> sizes = parameters.getSupportedPictureSizes();
+      if (sizes == null || sizes.isEmpty()) {
+          return null;
       }
-    }
-
-    if (result == null && enforceProfile) {
-      result=getLargestPictureSize(host, parameters, false);
-    }
-
-    return(result);
+      Camera.Size result = sizes.get(sizes.size() - 1);
+      for (Camera.Size size : sizes) {
+          if ((size.height <= host.getDeviceProfile().getMaxPictureHeight() &&
+              size.height >= host.getDeviceProfile().getMinPictureHeight())) {
+              int resultArea = result.width * result.height;
+              int newArea = size.width * size.height;
+              if (newArea > resultArea) {
+                  result=size;
+              }
+          }
+      }
+      return(result);
   }
 
   public static Camera.Size getSmallestPictureSize(Camera.Parameters parameters) {

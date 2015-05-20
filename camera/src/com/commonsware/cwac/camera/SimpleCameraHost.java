@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class SimpleCameraHost implements CameraHost {
@@ -40,13 +41,14 @@ public class SimpleCameraHost implements CameraHost {
   private File photoDirectory=null;
   private File videoDirectory=null;
   private RecordingHint recordingHint=null;
-  private boolean mirrorFFC=false;
+  protected boolean mirrorFFC=false;
   private boolean useFrontFacingCamera=false;
   private boolean scanSavedImage=true;
   private boolean useFullBleedPreview=true;
   private boolean useSingleShotMode=false;
+  protected Camera.Size previewSize;
 
-  public SimpleCameraHost(Context _ctxt) {
+    public SimpleCameraHost(Context _ctxt) {
     this.ctxt=_ctxt.getApplicationContext();
   }
 
@@ -76,23 +78,27 @@ public class SimpleCameraHost implements CameraHost {
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   @Override
   public void configureRecorderProfile(int cameraId,
-                                       MediaRecorder recorder) {
+                                       MediaRecorder recorder, Camera.Size videoSize) {
+      CamcorderProfile profile = null;
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
         || CamcorderProfile.hasProfile(cameraId,
-                                       CamcorderProfile.QUALITY_HIGH)) {
-      recorder.setProfile(CamcorderProfile.get(cameraId,
-                                               CamcorderProfile.QUALITY_HIGH));
+                                       CamcorderProfile.QUALITY_LOW)) {
+        profile = CamcorderProfile.get(cameraId,
+                                               CamcorderProfile.QUALITY_LOW);
     }
     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
         && CamcorderProfile.hasProfile(cameraId,
-                                       CamcorderProfile.QUALITY_LOW)) {
-      recorder.setProfile(CamcorderProfile.get(cameraId,
-                                               CamcorderProfile.QUALITY_LOW));
+                                       CamcorderProfile.QUALITY_HIGH)) {
+      profile = CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
     }
-    else {
+
+    if (profile == null) {
       throw new IllegalStateException(
                                       "cannot find valid CamcorderProfile");
     }
+      profile.videoFrameWidth = videoSize.width;
+      profile.videoFrameHeight = videoSize.height;
+      recorder.setProfile(profile);
   }
 
   @Override
@@ -148,6 +154,11 @@ public class SimpleCameraHost implements CameraHost {
   @Override
   public Camera.Size getPictureSize(PictureTransaction xact,
                                     Camera.Parameters parameters) {
+    for (Camera.Size size : parameters.getSupportedPictureSizes()) {
+      if (size.width == previewSize.width && size.height == previewSize.height) {
+        return previewSize;
+      }
+    }
     return(CameraUtils.getLargestPictureSize(this, parameters));
   }
 
@@ -155,10 +166,43 @@ public class SimpleCameraHost implements CameraHost {
   public Camera.Size getPreviewSize(int displayOrientation, int width,
                                     int height,
                                     Camera.Parameters parameters) {
-    return(CameraUtils.getBestAspectPreviewSize(displayOrientation,
-                                                width, height,
-                                                parameters));
+    previewSize = (getOptimalPreviewSize(parameters.getSupportedPreviewSizes(), width, height));
+    return previewSize;
   }
+
+    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+        final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio = (double) w / h;
+        if (sizes == null) return null;
+
+        Camera.Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+
+        int targetHeight = h;
+
+        // Try to find an size match aspect ratio and size
+        for (Camera.Size size : sizes) {
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.height - targetHeight);
+            }
+        }
+
+        // Cannot find the one match the aspect ratio, ignore the requirement
+        if (optimalSize == null) {
+            optimalSize = sizes.get(sizes.size() - 1);
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : sizes) {
+                if (Math.abs(size.height - targetHeight) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.height - targetHeight);
+                }
+            }
+        }
+        return optimalSize;
+    }
 
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   @Override
@@ -167,13 +211,14 @@ public class SimpleCameraHost implements CameraHost {
                                                      int height,
                                                      Camera.Parameters parameters,
                                                      Camera.Size deviceHint) {
-    if (deviceHint != null) {
-      return(deviceHint);
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-      return(parameters.getPreferredPreviewSizeForVideo());
-    }
+//    if (deviceHint != null) {
+//      return(deviceHint);
+//    }
+//
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+//      previewSize = parameters.getPreferredPreviewSizeForVideo();
+//      return previewSize;
+//    }
 
     return(null);
   }
