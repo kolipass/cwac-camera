@@ -122,7 +122,10 @@ public class CameraUtils {
         Camera.Size optimalSize=null;
         double minDiff=Double.MAX_VALUE;
 
-        List<Size> sizes=parameters.getSupportedVideoSizes();
+        List<Size> sizes = parameters.getSupportedVideoSizes();
+        if (sizes == null) {
+            sizes = parameters.getSupportedPreviewSizes();
+        }
 
         Collections.sort(sizes,
                 Collections.reverseOrder(new SizeComparator()));
